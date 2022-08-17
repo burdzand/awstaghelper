@@ -34,7 +34,7 @@ func TestGetBuckets(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("GetBuckets", func(t *testing.T) {
-			result := getBuckets(c)
+			result := getBuckets(c, "us-east-1")
 			assertions := assert.New(t)
 			assertions.EqualValues(expectedResult, result)
 		})

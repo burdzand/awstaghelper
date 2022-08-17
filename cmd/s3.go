@@ -45,7 +45,7 @@ Csv filename can be specified with flag filename.`,
 		region, _ := cmd.Flags().GetString("region")
 		sess := pkg.GetSession(region, profile)
 		client := s3.New(sess)
-		pkg.WriteCsv(pkg.ParseS3Tags(tags, client), filename)
+		pkg.WriteCsv(pkg.ParseS3Tags(tags, client, region, sess), filename)
 	},
 }
 

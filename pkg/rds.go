@@ -48,22 +48,38 @@ func ParseRDSTags(tagsToRead string, client rdsiface.RDSAPI) [][]string {
 // TagRDS tag rds instances. Take as input data from csv file. Where first column arn
 func TagRDS(csvData [][]string, client rdsiface.RDSAPI) {
 	for r := 1; r < len(csvData); r++ {
-		var tags []*rds.Tag
+
+		rdsTags, err := client.ListTagsForResource(&rds.ListTagsForResourceInput{ResourceName: aws.String(csvData[r][0])})
+		if err != nil {
+			fmt.Println("Not able to get rds tags ", err)
+		}
+
 		for c := 1; c < len(csvData[0]); c++ {
-			tags = append(tags, &rds.Tag{
-				Key:   &csvData[0][c],
-				Value: &csvData[r][c],
-			})
+			tagAlreadyExists := false
+			for p, tag := range rdsTags.TagList {
+				if *tag.Key == csvData[0][c] {
+					tagAlreadyExists = true
+					rdsTags.TagList[p].Value = &csvData[r][c]
+					break
+				}
+			}
+			if !tagAlreadyExists {
+				rdsTags.TagList = append(rdsTags.TagList, &rds.Tag{
+					Key:   &csvData[0][c],
+					Value: &csvData[r][c],
+				})
+			}
 		}
 
 		input := &rds.AddTagsToResourceInput{
 			ResourceName: aws.String(csvData[r][0]),
-			Tags:         tags,
+			Tags:         rdsTags.TagList,
 		}
 
-		_, err := client.AddTagsToResource(input)
+		_, err = client.AddTagsToResource(input)
 		if awsErrorHandle(err) {
 			return
 		}
+
 	}
 }
